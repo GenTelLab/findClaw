@@ -1,0 +1,590 @@
+{
+  "version": "4.0",
+  "rules": [
+    {
+      "id": "openclaw-header-version",
+      "name": "OpenClaw Header Version",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 110,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_header",
+            "headerName": "X-Claw-Version",
+            "match": { "exists": true }
+          }
+        ]
+      },
+      "versionExtract": {
+        "from": "header",
+        "headerName": "X-Claw-Version",
+        "regex": "(\\d+\\.\\d+\\.\\d+)"
+      },
+      "confidenceScore": 95
+    },
+    {
+      "id": "openclaw-control-ui",
+      "name": "OpenClaw Control UI",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 108,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["openclaw"],
+              "bodyNotContains": ["autoclaw", "miniclaw", "findclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 92
+    },
+    {
+      "id": "openclaw-tools-api-stack",
+      "name": "OpenClaw Tool API Stack",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 106,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/tools/invoke",
+            "match": { "statusCodeIn": [401, 405] }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/v1/chat/completions",
+            "match": { "statusCodeIn": [401, 405] }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/v1/responses",
+            "match": { "statusCodeIn": [401, 405] }
+          }
+        ]
+      },
+      "confidenceScore": 93
+    },
+    {
+      "id": "openclaw-status-signals",
+      "name": "OpenClaw Status Signals",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 102,
+      "conditions": {
+        "anyOf": [
+          {
+            "type": "http_path_response",
+            "path": "/health",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["channel", "running", "probe"],
+              "operator": "AND"
+            }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/status",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["openclaw", "channel", "gateway"],
+              "operator": "OR"
+            }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/version",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["openclaw", "claw"],
+              "operator": "OR"
+            }
+          }
+        ]
+      },
+      "confidenceScore": 88
+    },
+    {
+      "id": "openclaw-root-assets",
+      "name": "OpenClaw Asset Hints",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 98,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "appHintContains": ["openclaw"],
+              "bodyNotContains": ["findclaw"],
+              "assetPathNotContains": ["autoclaw", "miniclaw"],
+              "titleNotContains": ["findclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 84
+    },
+    {
+      "id": "openclaw-mcp-stream",
+      "name": "OpenClaw MCP Stream",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 96,
+      "conditions": {
+        "anyOf": [
+          {
+            "type": "sse_available",
+            "match": {}
+          },
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["signal=mcp:event-stream", "signal=mcp:200", "signal=mcp:401"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 82
+    },
+    {
+      "id": "openclaw-mdns-beacon",
+      "name": "OpenClaw mDNS Beacon",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 94,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nmap_service_contains",
+            "match": { "contains": "mdns-openclaw" }
+          }
+        ]
+      },
+      "confidenceScore": 85
+    },
+    {
+      "id": "openclaw-nse-detect",
+      "name": "OpenClaw NSE Detect",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 92,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": [
+                "claw_detect=openclaw",
+                "claw_detect=openclaw_gateway",
+                "signal=root:openclaw",
+                "signal=health:openclaw",
+                "signal=status:openclaw",
+                "signal=version:openclaw"
+              ]
+            }
+          }
+        ]
+      },
+      "versionExtract": {
+        "from": "nse_output",
+        "regex": "signal=header:x-claw-version=([0-9]+\\.[0-9]+\\.[0-9]+)"
+      },
+      "confidenceScore": 87
+    },
+    {
+      "id": "openclaw-legacy-clawdbot-root",
+      "name": "OpenClaw Legacy ClawDBot",
+      "familyName": "OpenClaw",
+      "variantName": "clawdbot",
+      "category": "confirmed",
+      "priority": 91,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["clawdbot"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 90
+    },
+    {
+      "id": "openclaw-legacy-moltbot-root",
+      "name": "OpenClaw Legacy MoltBot",
+      "familyName": "OpenClaw",
+      "variantName": "moltbot",
+      "category": "confirmed",
+      "priority": 90,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["moltbot"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 90
+    },
+    {
+      "id": "openclaw-legacy-clawdbot-nse",
+      "name": "OpenClaw Legacy ClawDBot NSE",
+      "familyName": "OpenClaw",
+      "variantName": "clawdbot",
+      "category": "confirmed",
+      "priority": 89,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["claw_detect=clawdbot", "signal=root:clawdbot", "signal=health:clawdbot", "signal=status:clawdbot"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 88
+    },
+    {
+      "id": "openclaw-legacy-moltbot-nse",
+      "name": "OpenClaw Legacy MoltBot NSE",
+      "familyName": "OpenClaw",
+      "variantName": "moltbot",
+      "category": "confirmed",
+      "priority": 88,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["claw_detect=moltbot", "signal=root:moltbot", "signal=health:moltbot", "signal=status:moltbot"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 88
+    },
+    {
+      "id": "openclaw-port-architecture",
+      "name": "OpenClaw Port Architecture",
+      "familyName": "OpenClaw",
+      "category": "confirmed",
+      "priority": 82,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "multi_port_cooccurrence",
+            "match": { "portAllOf": [18789, 18791, 18792] }
+          }
+        ]
+      },
+      "confidenceScore": 80
+    },
+    {
+      "id": "autoclaw-branding",
+      "name": "AutoClaw Branding",
+      "familyName": "AutoClaw",
+      "category": "confirmed",
+      "priority": 100,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["autoclaw", "autoglm", "zhipu"],
+              "operator": "OR",
+              "bodyNotContains": ["miniclaw", "findclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 91
+    },
+    {
+      "id": "autoclaw-api-stack",
+      "name": "AutoClaw API Stack",
+      "familyName": "AutoClaw",
+      "category": "confirmed",
+      "priority": 98,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "appHintContains": ["autoclaw", "autoglm", "zhipu"],
+              "operator": "OR"
+            }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/tools/invoke",
+            "match": { "statusCodeIn": [401, 405] }
+          }
+        ]
+      },
+      "confidenceScore": 88
+    },
+    {
+      "id": "autoclaw-status-branding",
+      "name": "AutoClaw Status Branding",
+      "familyName": "AutoClaw",
+      "category": "confirmed",
+      "priority": 96,
+      "conditions": {
+        "anyOf": [
+          {
+            "type": "http_path_response",
+            "path": "/health",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["autoclaw", "autoglm", "zhipu"],
+              "operator": "OR"
+            }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/status",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["autoclaw", "autoglm", "zhipu"],
+              "operator": "OR"
+            }
+          }
+        ]
+      },
+      "confidenceScore": 84
+    },
+    {
+      "id": "autoclaw-mdns-beacon",
+      "name": "AutoClaw mDNS Beacon",
+      "familyName": "AutoClaw",
+      "category": "confirmed",
+      "priority": 94,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nmap_service_contains",
+            "match": { "contains": "mdns-autoclaw" }
+          }
+        ]
+      },
+      "confidenceScore": 84
+    },
+    {
+      "id": "autoclaw-nse-detect",
+      "name": "AutoClaw NSE Detect",
+      "familyName": "AutoClaw",
+      "category": "confirmed",
+      "priority": 92,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["claw_detect=autoclaw", "signal=root:autoclaw_branding", "signal=health:autoclaw", "signal=status:autoclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 85
+    },
+    {
+      "id": "miniclaw-branding",
+      "name": "MiniClaw Branding",
+      "familyName": "MiniClaw",
+      "category": "confirmed",
+      "priority": 90,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/",
+            "match": {
+              "statusCode": 200,
+              "bodyContains": ["miniclaw"],
+              "bodyNotContains": ["findclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 88
+    },
+    {
+      "id": "miniclaw-status-branding",
+      "name": "MiniClaw Status Branding",
+      "familyName": "MiniClaw",
+      "category": "confirmed",
+      "priority": 88,
+      "conditions": {
+        "anyOf": [
+          {
+            "type": "http_path_response",
+            "path": "/health",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["miniclaw"]
+            }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/status",
+            "match": {
+              "statusCodeIn": [200, 401, 403],
+              "bodyContains": ["miniclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 82
+    },
+    {
+      "id": "miniclaw-mdns-beacon",
+      "name": "MiniClaw mDNS Beacon",
+      "familyName": "MiniClaw",
+      "category": "confirmed",
+      "priority": 86,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nmap_service_contains",
+            "match": { "contains": "mdns-miniclaw" }
+          }
+        ]
+      },
+      "confidenceScore": 82
+    },
+    {
+      "id": "miniclaw-nse-detect",
+      "name": "MiniClaw NSE Detect",
+      "familyName": "MiniClaw",
+      "category": "confirmed",
+      "priority": 84,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["claw_detect=miniclaw", "signal=root:miniclaw", "signal=health:miniclaw", "signal=status:miniclaw"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 84
+    },
+    {
+      "id": "unknown-claw-tools-api",
+      "name": "Unknown Claw Variant",
+      "familyName": "Unknown Claw Variant",
+      "category": "suspected",
+      "priority": 40,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "http_path_response",
+            "path": "/tools/invoke",
+            "match": { "statusCodeIn": [401, 405] }
+          }
+        ]
+      },
+      "confidenceScore": 52
+    },
+    {
+      "id": "unknown-claw-api-compat",
+      "name": "Unknown Claw Variant",
+      "familyName": "Unknown Claw Variant",
+      "category": "suspected",
+      "priority": 38,
+      "conditions": {
+        "anyOf": [
+          {
+            "type": "http_path_response",
+            "path": "/v1/chat/completions",
+            "match": { "statusCodeIn": [401, 405] }
+          },
+          {
+            "type": "http_path_response",
+            "path": "/v1/responses",
+            "match": { "statusCodeIn": [401, 405] }
+          }
+        ]
+      },
+      "confidenceScore": 50
+    },
+    {
+      "id": "unknown-claw-nse-generic",
+      "name": "Unknown Claw Variant",
+      "familyName": "Unknown Claw Variant",
+      "category": "suspected",
+      "priority": 36,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "nse_output_contains",
+            "match": {
+              "anyOf": ["claw_detect=generic", "signal=tools_invoke", "signal=health:channel_status", "signal=status:channel_status"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 46
+    },
+    {
+      "id": "unknown-claw-error-page",
+      "name": "Unknown Claw Variant",
+      "familyName": "Unknown Claw Variant",
+      "category": "suspected",
+      "priority": 30,
+      "conditions": {
+        "allOf": [
+          {
+            "type": "error_page_framework",
+            "match": {
+              "bodyContains": ["ClawError", "GatewayError", "connect.challenge"]
+            }
+          }
+        ]
+      },
+      "confidenceScore": 35
+    }
+  ],
+
+  "exclusions": [
+    { "id": "exclude-mysql",        "match": { "portEquals": 3306 } },
+    { "id": "exclude-redis",        "match": { "portEquals": 6379 } },
+    { "id": "exclude-postgres",     "match": { "portEquals": 5432 } },
+    { "id": "exclude-mongo",        "match": { "portEquals": 27017 } },
+    { "id": "exclude-elasticsearch","match": { "portEquals": 9200 } },
+    { "id": "exclude-nginx",        "match": { "serverHeaderContains": "nginx" } },
+    { "id": "exclude-apache",       "match": { "serverHeaderContains": "Apache" } },
+    { "id": "exclude-iis",          "match": { "serverHeaderContains": "Microsoft-IIS" } },
+    { "id": "exclude-tomcat",       "match": { "serverHeaderContains": "Apache-Coyote" } },
+    { "id": "exclude-jupyter",      "match": { "serverHeaderContains": "TornadoServer" } },
+    { "id": "exclude-grafana",      "match": { "serverHeaderContains": "Grafana" } },
+    { "id": "exclude-express",      "match": { "serverHeaderContains": "Express" } },
+    { "id": "exclude-spring-boot",  "match": { "serverHeaderContains": "Spring" } },
+    { "id": "exclude-whitelabel",   "match": { "titleContains": "Whitelabel Error Page" } },
+    { "id": "exclude-express-body", "match": { "bodyContains": "Cannot GET /" } },
+    { "id": "exclude-django",       "match": { "bodyContains": "The install worked successfully!" } },
+    { "id": "exclude-flask",        "match": { "bodyContains": "Werkzeug" } },
+    { "id": "exclude-tensorboard",  "match": { "serverHeaderContains": "TensorBoard" } },
+    { "id": "exclude-prometheus",   "match": { "serverHeaderContains": "Prometheus" } }
+  ]
+}
