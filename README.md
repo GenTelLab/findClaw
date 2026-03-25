@@ -65,8 +65,6 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
 - **指纹识别**：专属指纹库，精准识别 OpenClaw / AutoClaw / MiniClaw
 - **双级研判**：已确认 + 疑似，附置信度评分
 - **资产台账**：多维筛选、分页查询、Excel 导出
-- **周期巡检**：Cron 定时扫描 + 自动变更感知
-- **趋势追溯**：资产数量随时间变化的可视化
 - **NSE 侧信号**：结合 `claw-detect.nse` 探测 `/tools/invoke`、`/v1/chat/completions` 等真实 Gateway 端点
 
 ## API 文档

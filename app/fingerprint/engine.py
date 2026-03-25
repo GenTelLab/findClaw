@@ -32,6 +32,10 @@ class FingerprintEngine:
         self.load()
 
     def match(self, probe: ProbeResult) -> MatchResult | None:
+        if self._exclusion_filter and self._exclusion_filter.should_exclude(probe):
+            logger.debug("Excluded %s:%d by exclusion filter", probe.ip, probe.port)
+            return None
+
         response_map = _build_response_map(probe)
         matched_entry_list: list[tuple[FingerprintRule, MatchResult]] = []
 
@@ -51,9 +55,6 @@ class FingerprintEngine:
                 result.confidence_score,
             )
             return result
-
-        if self._exclusion_filter and self._exclusion_filter.should_exclude(probe):
-            logger.debug("Excluded %s:%d after rule miss", probe.ip, probe.port)
 
         return None
 

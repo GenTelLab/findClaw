@@ -121,10 +121,10 @@ action = function(host, port)
   if tools_invoke_response then
     if tools_invoke_response.status == 405 then
       add_output("signal=tools_invoke:405")
-      add_output("claw_detect=openclaw_gateway")
+      add_output("claw_detect=generic")
     elseif tools_invoke_response.status == 401 then
       add_output("signal=tools_invoke:401")
-      add_output("claw_detect=openclaw_gateway")
+      add_output("claw_detect=generic")
     end
   end
 
@@ -162,7 +162,7 @@ action = function(host, port)
     local body_lower = lower(response.body)
     if contains(body_lower, "channel") and contains(body_lower, "running") then
       add_output("signal=" .. label .. ":channel_status")
-      add_output("claw_detect=openclaw_gateway")
+      add_output("claw_detect=generic")
     end
     if contains(body_lower, "probe") and contains(body_lower, "elapsedms") then
       add_output("signal=" .. label .. ":probe_metrics")
@@ -215,7 +215,7 @@ action = function(host, port)
       local openclaw_token_header = header_map["x-openclaw-token"]
       if openclaw_token_header then
         add_output("signal=header:x-openclaw-token")
-        add_output("claw_detect=openclaw_gateway")
+        add_output("claw_detect=openclaw")
       end
     end
   end

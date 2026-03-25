@@ -1,5 +1,44 @@
 from app.scanner.http_prober import ProbeResult
 
+_STRONG_BRAND_KEYWORD_SET = frozenset((
+    "openclaw",
+    "autoclaw",
+    "miniclaw",
+    "clawdbot",
+    "moltbot",
+))
+
+_STRONG_HEADER_KEYWORD_SET = frozenset((
+    "x-claw-version",
+    "x-openclaw-token",
+))
+
+_STRONG_NSE_SIGNAL_SET = frozenset((
+    "claw_detect=openclaw",
+    "claw_detect=autoclaw",
+    "claw_detect=miniclaw",
+    "claw_detect=clawdbot",
+    "claw_detect=moltbot",
+    "signal=root:openclaw",
+    "signal=root:autoclaw_branding",
+    "signal=root:miniclaw",
+    "signal=root:clawdbot",
+    "signal=root:moltbot",
+    "signal=health:openclaw",
+    "signal=health:autoclaw",
+    "signal=health:miniclaw",
+    "signal=health:clawdbot",
+    "signal=health:moltbot",
+    "signal=status:openclaw",
+    "signal=status:autoclaw",
+    "signal=status:miniclaw",
+    "signal=status:clawdbot",
+    "signal=status:moltbot",
+    "signal=version:openclaw",
+    "signal=header:x-claw-version",
+    "signal=header:x-openclaw-token",
+))
+
 
 class ExclusionFilter:
 
@@ -30,6 +69,13 @@ class ExclusionFilter:
                 if keyword in server:
                     return True
 
+        if "nmapServiceContains" in match:
+            if _has_claw_signal(probe):
+                return False
+            keyword = match["nmapServiceContains"].lower()
+            if keyword in probe.nmap_service.lower():
+                return True
+
         if "titleContains" in match:
             keyword = match["titleContains"].lower()
             for resp in probe.response_list:
@@ -46,24 +92,6 @@ class ExclusionFilter:
 
 
 def _has_claw_signal(probe: ProbeResult) -> bool:
-    clue_list = (
-        "openclaw",
-        "autoclaw",
-        "miniclaw",
-        "clawdbot",
-        "moltbot",
-        "x-claw-version",
-        "x-openclaw-token",
-        "connect.challenge",
-    )
-
-    interesting_path_set = {
-        "/tools/invoke",
-        "/v1/chat/completions",
-        "/v1/responses",
-        "/health",
-    }
-
     for resp in probe.response_list:
         combined = " ".join(
             [
@@ -74,16 +102,13 @@ def _has_claw_signal(probe: ProbeResult) -> bool:
         ).lower()
         if _is_findclaw_self_ui(combined):
             continue
-        if any(clue in combined for clue in clue_list):
+        if any(kw in combined for kw in _STRONG_BRAND_KEYWORD_SET):
+            return True
+        if any(kw in combined for kw in _STRONG_HEADER_KEYWORD_SET):
             return True
 
-        if resp.path in interesting_path_set and resp.status_code in {200, 401, 403, 405}:
-            return True
-
-    if probe.ws_available or probe.sse_available:
-        return True
-
-    if probe.nse_output and "claw_detect=" in probe.nse_output.lower():
+    nse = probe.nse_output.lower()
+    if nse and any(sig in nse for sig in _STRONG_NSE_SIGNAL_SET):
         return True
 
     return False
