@@ -139,7 +139,7 @@
       "category": "confirmed",
       "priority": 96,
       "conditions": {
-        "anyOf": [
+        "allOf": [
           {
             "type": "sse_available",
             "match": {}
@@ -147,7 +147,7 @@
           {
             "type": "nse_output_contains",
             "match": {
-              "anyOf": ["signal=mcp:event-stream", "signal=mcp:200", "signal=mcp:401"]
+              "anyOf": ["signal=mcp:event-stream"]
             }
           }
         ]

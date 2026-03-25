@@ -144,24 +144,16 @@ action = function(host, port)
     end
   end
 
-  if mcp_response then
-    if mcp_response.status == 200 or mcp_response.status == 401 or mcp_response.status == 403 then
-      add_output("signal=mcp:" .. mcp_response.status)
-    end
-    if mcp_response.header then
-      local mcp_type = lower(mcp_response.header["content-type"] or "")
-      if contains(mcp_type, "event-stream") then
-        add_output("signal=mcp:event-stream")
-      end
+  if mcp_response and mcp_response.header then
+    local mcp_type = lower(mcp_response.header["content-type"] or "")
+    if contains(mcp_type, "event-stream") then
+      add_output("signal=mcp:event-stream")
     end
   end
 
   local function inspect_status_response(label, response)
     if not response then
       return
-    end
-    if response.status == 200 or response.status == 401 or response.status == 403 then
-      add_output("signal=" .. label .. ":" .. response.status)
     end
     if not response.body then
       return

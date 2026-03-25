@@ -40,8 +40,7 @@ DEEP_PROBE_PATH_LIST = [
 
 CLAW_SUSPECT_KEYWORD_LIST = [
     "openclaw", "autoclaw", "miniclaw", "clawdbot", "moltbot", "claw",
-    "gateway", "connect.challenge",
-    "tools/invoke", "operator", "event-stream",
+    "connect.challenge", "tools/invoke",
 ]
 
 HTTPS_PORT_SET = {443, 8443}
@@ -59,11 +58,6 @@ APP_HINT_KEYWORD_LIST = [
     "clawdbot",
     "moltbot",
     "connect.challenge",
-    "gateway",
-    "operator",
-    "vite",
-    "next",
-    "react",
 ]
 ASSET_PATH_PATTERN = re.compile(
     r"""(?:src|href)=["']([^"']+\.(?:js|css|ico|svg|png|json))["']""",
@@ -335,10 +329,16 @@ def _should_deep_probe(response_list: list[HttpResponse]) -> bool:
         if resp.path in {"/v1/chat/completions", "/v1/responses"} and resp.status_code in {401, 403, 405}:
             return True
 
-        if resp.path in {"/health", "/status", "/ready", "/live", "/version", "/api/version"} and resp.status_code in {200, 401, 403}:
+        if resp.path in {"/health", "/status", "/ready", "/live", "/version", "/api/version"} and resp.status_code in {401, 403}:
             return True
 
-        if resp.path in {"/mcp", "/ws"} and resp.status_code in {200, 401, 403, 404, 426}:
+        if resp.path == "/mcp":
+            if resp.status_code in {401, 403}:
+                return True
+            if resp.status_code == 200 and "event-stream" in resp.content_type.lower():
+                return True
+
+        if resp.path == "/ws" and resp.status_code in {101, 426}:
             return True
 
         header_text = " ".join(f"{k}:{v}" for k, v in resp.headers.items()).lower()
